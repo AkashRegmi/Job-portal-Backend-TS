@@ -1,15 +1,20 @@
 import mongoose ,{Document,Schema,model} from "mongoose";
+import { JobType } from "../enums/JobType";
+import { JOBSTATUS } from "../enums/jobStatus";
 export interface IJob extends Document {                                                
-user: mongoose.Types.ObjectId; // Reference to the user who posted the job
+  user: mongoose.Types.ObjectId; 
   title: string;
   description: string;
   company: string;
   location: string;
   salary: number;
-  jobType: 'full-time' | 'part-time' | 'contract';
+  jobType: JobType;
   time:Date,
- 
+  opennings: number;
+  status:JOBSTATUS
+
 }
+
 
 const jobSchema = new Schema<IJob>({
     user: {
@@ -39,13 +44,25 @@ const jobSchema = new Schema<IJob>({
     },
     jobType: {
         type: String,
-        enum: ['full-time', 'part-time', 'contract', 'internship'],
-        default: 'full-time',
+        enum: Object.values(JobType),
+        required: true,
+        default: JobType.FULL_TIME, 
+        trim: true,
+        lowercase: true,
     },
     time: {
         type: Date,
-        default: Date.now,
+        default: () => new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
     },
+    opennings: {
+        type: Number,
+        required: true,
+    },
+    status:{
+        type:Number,
+        enum:JOBSTATUS,
+        default:JOBSTATUS.PENDING
+    }
 
 },{
     timestamps: true,
