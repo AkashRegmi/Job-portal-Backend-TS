@@ -6,12 +6,15 @@ import authRouter from "./route/authRoute"
 import jobRouter from "./route/jobRoute"
 import applicationRouter from "./route/applicationRoute";
 import { globalerrorhandler } from "./middleware/globalerrorhandler";
+import cors from "cors"
 dotenv.config();
-
+    
 const app = express();
 const PORT = process.env.PORT || 4001;
 connectDB();
 app.use(express.json())
+app.use(cors());
+
 
 
 // app.get("/", (req: Request, res: Response) => {
@@ -20,7 +23,7 @@ app.use(express.json())
 
 app.use("/api/auth",authRouter);
 app.use("/api/job", jobRouter);
-app.use("/api/application", applicationRouter); // Assuming application routes are under jobRouter
+app.use("/api/application", applicationRouter); 
 
 app.use(globalerrorhandler)
 app.listen(PORT, () => {

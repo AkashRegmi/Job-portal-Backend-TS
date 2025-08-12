@@ -1,35 +1,42 @@
 import mongoose,{Document,Schema,model} from "mongoose";
+import { NextFunction } from "express";
+import { UserRole } from "../enums/UserRole";
 import bcrypt from "bcryptjs"
 export interface IUser extends Document {
   name: string;
-  role: 'user' | 'admin';
+  role: UserRole;
   email: string;
   password: string;
   
 }
+//This is making the User Schema 
  const userSchema = new Schema<IUser>({
     name: {
         type: String,
         required: true,
-        toLowerCase: true,
+        lowercase: true,
         trim: true,
     },
     role: {
         type: String,
-        enum: ['user', 'admin'],
-        default: 'user',
+        enum: Object.values(UserRole),
+        default: UserRole.USER, 
+        trim: true,
+        lowercase: true,
     },
     email: {
         type: String,
         required: true,
         unique: true,
-        toLowerCase: true,
+        lowercase: true,
         trim: true,
     },
     password: {
         type: String,
         required: true,
     },
+ },{
+    timestamps: true,
  });
  userSchema.pre<IUser>('save', async function (next) {
     if (!this.isModified('password')) {
