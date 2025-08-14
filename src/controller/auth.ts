@@ -1,5 +1,5 @@
 import {Request, Response} from 'express';
-import User from "../database/User";
+import User from "../model/User";
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import {sendError, sendSuccess} from "../utils/responseHandler"

@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
-import Application from "../database/Application"
-import Job from "../database/Job"
+import Application from "../model/Application"
+import Job from "../model/Job"
 import fs from 'fs';
 import {sendError,sendSuccess} from "../utils/responseHandler"
 
