@@ -43,4 +43,5 @@ router.get("/alljobAppliedByUser", authenticateUser, alljobAppliedByUser);
 
 
 
+
 export default router;

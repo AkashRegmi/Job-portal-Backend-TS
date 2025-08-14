@@ -4,7 +4,7 @@ import { createApplication } from "../controller/application";
 import { authenticateUser } from "../middleware/authUSer" ;
 import { creatMUltipleUpload } from "../utils/uploads";
 
-import Job from "..//database/Job"
+import Job from "../model/Job"
 
 const router:Router = express.Router();
 const uploadCV = creatMUltipleUpload({

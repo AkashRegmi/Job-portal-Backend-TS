@@ -1,6 +1,6 @@
 import { Request,Response } from "express";
-import Job from "../database/Job";
-import Application from "../database/Application";
+import Job from "../model/Job";
+import Application from "../model/Application";
 import { JOBSTATUS } from "../enums/jobStatus";
 import {sendError,sendSuccess} from "../utils/responseHandler"
 
@@ -69,7 +69,7 @@ if (jobTime < now) {
  export const getAllJobs = async (req: Request, res: Response): Promise<Response> => {
   try {
     const { title, location , jobType, company, salaryMin, salaryMax } = req.query;
-    const limit = parseInt(req.query.limit as string)||5;
+    const limit = parseInt(req.query.limit as string) || 5;
     const page = parseInt(req.query.page as string) || 1;
     const skip = (page - 1) * limit;
     
@@ -112,7 +112,7 @@ if (jobTime < now) {
       jobs,
       currentPage: page,
         totalJobs: totalJobs,
-        totalpage  : Math.ceil(allJobs/limit)
+        totalpage  : Math.ceil(totalJobs/limit)
     })
   } catch (error) {
     console.error("Error fetching jobs:", error);
@@ -308,27 +308,34 @@ export const alljobAppliedByUser = async (req: Request, res: Response): Promise<
 };
 
 //Updating the job Status to Approve(done)
-export const acceptJobApplication = async (req:Request,res:Response):Promise<Response> =>{
-  const {id} = req.params;
-//  if(job.id.status.JOBSTATUS.APPROVE===1){
-//       return sendError(res,404,"Already Approved")
-//     }
+export const acceptJobApplication = async (req: Request, res: Response): Promise<Response> => {
+  const { id } = req.params;
+
   try {
-    const job = await Job.findOneAndUpdate(
-      { _id: id, status: JOBSTATUS.PENDING },
-      { status: JOBSTATUS.APPROVE },
-      { new: true }
-    );
-    if (!job){
-      return sendError(res,404,"Job Not Found");
+    // First, find the job
+    const job = await Job.findById(id);
+    if (!job) {
+      return sendError(res, 404, "Job Not Found");
     }
-   
-    return sendSuccess(res,200,"Job is Posted to Portal",job);
-  } catch (error : any) {
-    console.log("Error updating the job ", error.message);
-    return sendError(res,500,"OOPs Server is Down");
+
+    // Check if already approved
+    if (job.status === JOBSTATUS.APPROVE) {
+      return sendError(res, 400, "Job is already approved");
+    }
+
+    // Update the status to APPROVE
+    job.status = JOBSTATUS.APPROVE;
+    await job.save();
+
+    // Return success
+    return sendSuccess(res, 200, "Job is approved and posted to the portal", job);
+    
+  } catch (error: any) {
+    console.log("Error updating the job:", error.message);
+    return sendError(res, 500, "Oops! Server is down");
   }
-}
+};
+
 
 //Updating the job Status to the Reject (done)
 export const rejectJObApplication = async(req:Request,res:Response):Promise<Response>=>{
