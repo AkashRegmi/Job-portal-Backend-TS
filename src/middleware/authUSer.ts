@@ -35,7 +35,6 @@ export const authenticateUser = (req: Request, res: Response, next: NextFunction
 
 };
 
-
 //Yo chai for the admin User ko lagi 
 
 export const adminUser = (req:Request, res:Response,next:NextFunction)=>{
@@ -69,5 +68,36 @@ console.error("Token verification failed:", error.message);
     
  }
 
+};
+
+//This is for the main reviewer
+export const reviewerUser = (req: Request, res: Response, next: NextFunction) => {
+  const token =
+    req.headers["authorization"]?.toString().split(" ")[1] ||
+    req.headers["Authorization"]?.toString().split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized: token not received",
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
+    req.user = decoded;
+
+    if (req.user.role === "reviewer") {
+      next();
+    } else {
+      return res.status(403).json({
+        success: false,
+        message: "Only Reviewer can access this",
+      });
+    }
+  } catch (error: any) {
+    console.error("Token verification failed:", error.message);
+    return res.status(403).json({ message: "Invalid token" });
+  }
 };
 

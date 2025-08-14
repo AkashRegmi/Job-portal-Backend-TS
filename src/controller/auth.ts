@@ -48,7 +48,7 @@ export const registerUser = async (req:Request<{},{},RegisterRequestBody>,res:Re
         name: newUser.name,
         email: newUser.email,
         role: newUser.role,
-    })
+    } )
    } catch (error:any) {
     console.error('Error registering user:', error.message);
     // return res.status(500).json({ message: `Server error: ${error.message}` });

@@ -43,8 +43,9 @@ const jobSchema = new Schema<IJob>({
         required: true,
     },
     jobType: {
-        type: String,
-        enum: Object.values(JobType),
+        type: Number,
+        // enum: Object.values(JobType),
+         enum: JobType,
         required: true,
         default: JobType.FULL_TIME, 
         trim: true,

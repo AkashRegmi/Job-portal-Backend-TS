@@ -8,75 +8,51 @@ import {sendError,sendSuccess} from "../utils/responseHandler"
 
  export const createApplication = async (req: Request, res: Response): Promise<Response> => {
   try {
-    // console.log("Creating application with body:");
     const { jobId} = req.params;
-    // console.log('Job ID:', jobId);
     const { phoneNumber } = req.body; 
-
-  //   console.log('Body:', req.body);
-  // console.log('File:', req.file);
     const userId = req.user?.id; 
     const userName = req.user?.name;
+    
+    //for checking if there is the User Exist 
   if (!userId) {
     if (req.file && req.file.path) {
   fs.unlink(req.file.path, (err) => {
     if (err) console.error("Failed to delete file:", err);
   });
 }
-
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized: User not found",
-      });
+      // return res.status(401).json({
+      //   success: false,
+      //   message: "Unauthorized: User not found",
+      // });
+      return sendError(res,401,"Unauthorize: User Not Found");
     }
 
       const jobExist = await Job.findById( jobId )
                 if(!jobExist) {
-                    return res.status(404).json({
-                        status: 404,
-                        success: false,
-                        message: 'Job not found'
-                    });
+                    return sendError(res,404,"job Not Found")
                 } 
 // console.log(typeof req.user?.id, typeof jobExist.user);
       if(userId === jobExist.user.toString()) {
-        
-      return res.status(403).json({
-        status: 403,
-        success: false,
-        message: "You cannot apply for your own job"
-      });
+      return sendError(res,403,"You Cannot apply for your own job")
     }
    
  if(!phoneNumber) {
-        return res.status(400).json({
-            status: 400,
-            success: false,
-            message: 'Phone number is required' 
-        })};
+        return sendError(res,400,"Phone Number is Required")
+      };
 
           if(phoneNumber.length !== 10 ) {
-            return res.status(400).json({
-                success: 'failed',
-                message: 'Phone number must be 10 digits long'
-            });
+            return sendError(res,400,"Phone Number must be 10 digit Long ")
         }
 
          if(!req.file || !req.file.path  ) {
-        return res.status(400).json({ 
-            success: 'failed',
-            message: 'CV is required' });
+            return sendError(res,400,"CV is Required")
            }
 
 
 
             const applicant = await Application.findOne({ user:userId, job:jobId });
             if(applicant) {
-                return res.status(400).json({
-                  status: 400,
-                    success: false,
-                    message: 'You have already applied for this job'
-                })
+                return sendError(res,400,"You already have applied for this job")
               }
 
               
@@ -93,21 +69,9 @@ import {sendError,sendSuccess} from "../utils/responseHandler"
     const savedApplication = await newApplication.save();
     await savedApplication.populate('user', 'name email role');
     await savedApplication.populate('job', 'title company location');
-
-
-   
-
-    return res.status(201).json({
-      success: true,
-      message: "Job Applied successfully",
-      application: newApplication,
-    
-    });
+    return sendSuccess(res,201,"Job Applied Successfully",newApplication)
   } catch (error:any) {
     console.error("Error creating application:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error. Error creating the application"
-    });
+    return sendError(res,500,"Internal Server Error")
   }
 };

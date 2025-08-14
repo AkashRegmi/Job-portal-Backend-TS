@@ -17,9 +17,7 @@ app.use(cors());
 
 
 
-// app.get("/", (req: Request, res: Response) => {
-//   res.send("Hello, World!");
-// });
+
 
 app.use("/api/auth",authRouter);
 app.use("/api/job", jobRouter);

@@ -6,7 +6,7 @@ import {sendError,sendSuccess} from "../utils/responseHandler"
 
 
 
-// This is for creating a new job
+// This is for creating a new job (done)
  export const createJob = async (req: Request, res: Response): Promise<Response> => {
   const { title, description, time,location, salary, company, jobType,opennings } = req.body;
   
@@ -42,7 +42,6 @@ if (jobTime < now) {
       jobType,
       time,
       opennings,
-      
       user: req.user.id ,
      
     });
@@ -66,13 +65,14 @@ if (jobTime < now) {
   }
 }
 
-//This is for getting all jobs
+//This is for getting all jobs (done)
  export const getAllJobs = async (req: Request, res: Response): Promise<Response> => {
   try {
     const { title, location , jobType, company, salaryMin, salaryMax } = req.query;
     const limit = parseInt(req.query.limit as string)||5;
     const page = parseInt(req.query.page as string) || 1;
     const skip = (page - 1) * limit;
+    
 
     
 
@@ -95,16 +95,25 @@ if (jobTime < now) {
   if (salaryMin) filter.salary.$gte = Number(salaryMin);
   if (salaryMax) filter.salary.$lte = Number(salaryMax);
 }
-// filter.status = 1;
+  filter.status = 1;
     
     const jobs = await Job.find(filter).skip(skip).limit(limit).sort({ createdAt: -1 });
-    return res.status(200).json({
-        status: 200,
-      success: true,
+    const allJobs = await Job.countDocuments()
+    const totalJobs = await Job.countDocuments(filter);
+    // return res.status(200).json({
+    //     status: 200,
+    //   success: true,
+    //   jobs,
+    //   currentPage: page,
+    //     totalJobs: totalJobs,
+    //     totalpage  : Math.ceil(allJobs/limit)
+    // });
+    return sendSuccess(res,200,"Data Fetch Successfully",{
       jobs,
       currentPage: page,
-        totalJobs: await Job.countDocuments(filter)
-    });
+        totalJobs: totalJobs,
+        totalpage  : Math.ceil(allJobs/limit)
+    })
   } catch (error) {
     console.error("Error fetching jobs:", error);
     return res.status(500).json({
@@ -114,7 +123,7 @@ if (jobTime < now) {
   }
 }
 
-// This is for getting a single job by ID
+// This is for getting a single job by ID (Done)
  export const getJobById = async (req: Request, res: Response): Promise<Response> => {
   const jobId = req.params.id;
   try {
@@ -139,12 +148,19 @@ if (jobTime < now) {
     }
 };
 
-// This is for updating a job by ID
+// This is for updating a job by ID  (Done)
  export const updateJob = async (req: Request, res: Response): Promise<Response> => {
   
   try {
     const jobId = req.params.id;
-  const { title, description, location, salary } = req.body;
+  const { title,
+      description,
+      location,
+      salary,
+      company,
+      jobType,
+      time,
+      opennings, } = req.body;
     const job = await Job.findById(jobId);
     if (!job) {
       return res.status(404).json({
@@ -161,7 +177,14 @@ if (jobTime < now) {
       });
     }
   const updatedJob = await Job.findByIdAndUpdate(
-    jobId,{title, description, location, salary},
+    jobId,{title,
+      description,
+      location,
+      salary,
+      company,
+      jobType,
+      time,
+      opennings},
     { new: true })
     return res.status(200).json({
         status:200,
@@ -178,7 +201,7 @@ if (jobTime < now) {
   }
 }  
 
-// This is for deleting a job by ID
+// This is for deleting a job by ID (Done)
  export const deleteJob = async (req: Request, res: Response): Promise<Response> => {
   const jobId = req.params.id;
   try {
@@ -249,7 +272,7 @@ export const alljobByAdmin = async (req: Request, res: Response): Promise<Respon
   }
 };
 
-//All the job Applied by the user 
+//All the job Applied by the user (Done)
 export const alljobAppliedByUser = async (req: Request, res: Response): Promise<Response> => {
   const userId = req.user?.id;
   if (!userId) {
@@ -284,11 +307,12 @@ export const alljobAppliedByUser = async (req: Request, res: Response): Promise<
   }
 };
 
-//Updating the job Status to Approve
-
-export const acceptJobStatus = async (req:Request,res:Response):Promise<Response> =>{
+//Updating the job Status to Approve(done)
+export const acceptJobApplication = async (req:Request,res:Response):Promise<Response> =>{
   const {id} = req.params;
-
+//  if(job.id.status.JOBSTATUS.APPROVE===1){
+//       return sendError(res,404,"Already Approved")
+//     }
   try {
     const job = await Job.findOneAndUpdate(
       { _id: id, status: JOBSTATUS.PENDING },
@@ -298,6 +322,7 @@ export const acceptJobStatus = async (req:Request,res:Response):Promise<Response
     if (!job){
       return sendError(res,404,"Job Not Found");
     }
+   
     return sendSuccess(res,200,"Job is Posted to Portal",job);
   } catch (error : any) {
     console.log("Error updating the job ", error.message);
@@ -305,8 +330,8 @@ export const acceptJobStatus = async (req:Request,res:Response):Promise<Response
   }
 }
 
-//Updating the job Status to the Reject 
-export const rejectJObStatus = async(req:Request,res:Response):Promise<Response>=>{
+//Updating the job Status to the Reject (done)
+export const rejectJObApplication = async(req:Request,res:Response):Promise<Response>=>{
   const {id} = req.params;
   try {
     const job = await Job.findOneAndUpdate(
@@ -324,11 +349,47 @@ export const rejectJObStatus = async(req:Request,res:Response):Promise<Response>
   }
 }
 
-export const  getalljostPost = async (req:Request,res:Response):Promise<Response>=>{
+//getting all the pending job for the Admin (done)
+export const  getPendingjostPost = async (req:Request,res:Response):Promise<Response>=>{
 
-const job = await Job.find({status:{ $in: [JOBSTATUS.APPROVE, JOBSTATUS.PENDING, JOBSTATUS.REJECTED] }})
+const job = await Job.find({status:{ $in: [ JOBSTATUS.PENDING] }})
 if(!job){
   return sendError(res,404,"Cannot find the job")
 }
+
 return sendSuccess(res,200,"Data Fetched successfully",job)
 }
+
+//Getting all the job Status 
+export const  getAlljostPost = async (req:Request,res:Response):Promise<Response>=>{
+
+const job = await Job.find({status:{ $in: [JOBSTATUS.PENDING,JOBSTATUS.APPROVE,JOBSTATUS.REJECTED] }})
+if(!job){
+  return sendError(res,404,"Cannot find the job")
+}
+
+return sendSuccess(res,200,"Data Fetched successfully",job)
+}
+
+//Getting all the approved job (done)
+export const  getAllApprovedJObPost = async (req:Request,res:Response):Promise<Response>=>{
+
+const job = await Job.find({status:{ $in: [ JOBSTATUS.APPROVE] }})
+if(!job){
+  return sendError(res,404,"Cannot find the job")
+}
+
+return sendSuccess(res,200,"Data Fetched successfully",job)
+}
+
+// Getting all the Rejected Job (done)
+export const  getAllRejectedJObPost = async (req:Request,res:Response):Promise<Response>=>{
+
+const job = await Job.find({status:{ $in: [ JOBSTATUS.REJECTED] }})
+if(!job){
+  return sendError(res,404,"Cannot find the job")
+}
+
+return sendSuccess(res,200,"Data Fetched successfully",job)
+}
+
