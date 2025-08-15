@@ -3,7 +3,7 @@ import multer ,{FileFilterCallback}from "multer";
 import { createApplication } from "../controller/application";
 import { authenticateUser } from "../middleware/authUSer" ;
 import { creatMUltipleUpload } from "../utils/uploads";
-
+import { applicationValidator } from "../Validator/applicationValidator";
 import Job from "../model/Job"
 
 const router:Router = express.Router();
@@ -31,7 +31,7 @@ const uploadCV = creatMUltipleUpload({
 
 // const upload = multer({ storage, fileFilter });
 
-router.post("/apply/:jobId", authenticateUser,uploadCV.single('cv'),createApplication);
+router.post("/apply/:jobId", authenticateUser,applicationValidator,uploadCV.single('cv'),createApplication);
 export default router;
 
 
