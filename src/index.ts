@@ -17,8 +17,6 @@ app.use(cors());
 
 
 
-
-
 app.use("/api/auth",authRouter);
 app.use("/api/job", jobRouter);
 app.use("/api/application", applicationRouter); 
