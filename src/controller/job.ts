@@ -3,11 +3,20 @@ import Job from "../model/Job";
 import Application from "../model/Application";
 import { JOBSTATUS } from "../enums/jobStatus";
 import {sendError,sendSuccess} from "../utils/responseHandler"
-
-
+import { JobType } from "../enums/JobType";
+interface createJobBody{
+  title:string,
+  description:string,
+  time:string,
+  location:string,
+  salary:number,
+  company:string,
+  jobType:JobType,
+  opennings:number 
+}
 
 // This is for creating a new job (done)
- export const createJob = async (req: Request, res: Response): Promise<Response> => {
+ export const createJob = async (req: Request<{},{},createJobBody>, res: Response): Promise<Response> => {
   const { title, description, time,location, salary, company, jobType,opennings } = req.body;
   
   try {
@@ -27,10 +36,7 @@ import {sendError,sendSuccess} from "../utils/responseHandler"
     const now = new Date();
 
 if (jobTime < now) {
-  return res.status(400).json({
-    success: false,
-    message: "Job time cannot be in the past."
-  });
+  return sendError(res,400, "Job time Cannot be in Past Date ")
 }
    
     const newJob =  new   Job({
@@ -125,33 +131,33 @@ if (jobTime < now) {
 }
 
 // This is for getting a single job by ID (Done)
- export const getJobById = async (req: Request, res: Response): Promise<Response> => {
-  const jobId = req.params.id;
-  try {
-    const job = await Job.findById(jobId);
-    if (!job) {
-      // return res.status(404).json({
-      //   success: false,
-      //   message: "Job not found"
-      // });
-      return sendError (res, 404,"Job not Found")
-    }
-    // return res.status(200).json({
+  export const getJobById = async (req: Request, res: Response): Promise<Response> => {
+    const jobId = req.params.id;
+    try {
+      const job = await Job.findById(jobId);
+      if (!job) {
+        // return res.status(404).json({
+        //   success: false,
+        //   message: "Job not found"
+        // });
+        return sendError (res, 404,"Job not Found")
+      }
+      // return res.status(200).json({
 
-    //     status: 200,
-    //   success: true,
-    //   job
-    // });
-    return sendSuccess(res,200,"Job fetch Successfully", job)
-    } catch (error) {
-    console.error("Error fetching job:", error);
-    // return res.status(500).json({ 
-    //     success: false,
-    //     message: "Internal server error:Cannot get the job by ID"
-    //   })
-      return sendError(res, 500 , "Internal Server Error ")
-    }
-};
+      //     status: 200,
+      //   success: true,
+      //   job
+      // });
+      return sendSuccess(res,200,"Job fetch Successfully", job)
+      } catch (error) {
+      console.error("Error fetching job:", error);
+      // return res.status(500).json({ 
+      //     success: false,
+      //     message: "Internal server error:Cannot get the job by ID"
+      //   })
+        return sendError(res, 500 , "Internal Server Error ")
+      }
+  };
 
 // This is for updating a job by ID  (Done)
  export const updateJob = async (req: Request, res: Response): Promise<Response> => {

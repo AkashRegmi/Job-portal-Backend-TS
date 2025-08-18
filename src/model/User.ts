@@ -18,11 +18,10 @@ export interface IUser extends Document {
         trim: true,
     },
     role: {
-        type: String,
-        enum: Object.values(UserRole),
+        type: Number,
+        enum: UserRole,
         default: UserRole.USER, 
-        trim: true,
-        lowercase: true,
+        
     },
     email: {
         type: String,

@@ -1,41 +1,46 @@
-import {Request, Response} from 'express';
+import { Request, Response } from "express";
 import User from "../model/User";
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
-import {sendError, sendSuccess} from "../utils/responseHandler"
-
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+import { sendError, sendSuccess } from "../utils/responseHandler";
+import { UserRole } from "../enums/UserRole";
 
 interface RegisterRequestBody {
   name: string;
   email: string;
   password: string;
-  role?: 'user' | 'admin';
-};
+  // role?: 'user' | 'admin';
+  role?: UserRole;
+}
 interface LoginRequestBody {
   email: string;
   password: string;
-};
+}
 
 interface jwtPayload {
   id: string;
-    email: string;
-    name: string;
-    role?: "user"|"admin"
-};
+  email: string;
+  name: string;
+  // role?: "user"|"admin"
+  role?: UserRole;
+}
 
 //This is for the registering the new User
-export const registerUser = async (req:Request<{},{},RegisterRequestBody>,res:Response):Promise<Response> =>{
-    const {name,email,password,role='user'}=req.body;
-   try {
-   
-    const existinguser = await User.findOne({email});
-    if(existinguser){
-        return res.status(400).json({
-            success:"false",
-            message:"User Already Exist. Please SignIn"
-        })
-    };
-    const newUser =   await User.create({
+export const registerUser = async (
+  req: Request<{}, {}, RegisterRequestBody>,
+  res: Response
+): Promise<Response> => {
+  const { name, email, password, role = UserRole.USER } = req.body;
+  try {
+    const existinguser = await User.findOne({ email });
+    if (existinguser) {
+      // return res.status(400).json({
+      //   success: "false",
+      //   message: "User Already Exist. Please SignIn",
+      // });
+      return sendError(res, 400, "User Already Exist. Please SignIn ");
+    }
+    const newUser = await User.create({
       name,
       email,
       password,
@@ -43,42 +48,34 @@ export const registerUser = async (req:Request<{},{},RegisterRequestBody>,res:Re
     });
 
     // await newUser.save();
-    return sendSuccess(res,201,"User Register Successfully",{
-        id: newUser._id,
-        name: newUser.name,
-        email: newUser.email,
-        role: newUser.role,
-    } )
-   } catch (error:any) {
-    console.error('Error registering user:', error.message);
-    // return res.status(500).json({ message: `Server error: ${error.message}` });
-     return sendError(res,500,`Server Error ${error.message}`)
-   }
+    return sendSuccess(res, 201, "User Register Successfully", {
+      id: newUser._id,
+      name: newUser.name,
+      email: newUser.email,
+      // role: UserRole,
+    });
+  } catch (error: any) {
+    console.error("Error registering user:", error.message);
+    return sendError(res, 500, `Server Error ${error.message}`);
+  }
 };
 
-//This is for the Login of the User
-export const login = async (req:Request<{},{},LoginRequestBody>,res:Response):Promise<Response>=>{
-    
-         const {email, password}=  req.body;
-    try {
-      
-    const user = await User.findOne({email});
-    if(!user){
-        return res.status(400).json({
-            success:"False",
-            message:`${email} not found. Please Sign up`
-        })
-    };
+//This is for the Login of the existing User
+export const login = async (
+  req: Request<{}, {}, LoginRequestBody>,
+  res: Response
+): Promise<Response> => {
+  const { email, password } = req.body;
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return sendError(res, 400, `${email} not Found. Please Sign UP.`);
+    }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      // return res.status(401).json({
-      //   success: 'failed',
-      //   message: 'Invalid password',
-      // });
-       return sendError(res,401,"Invalid Password")
-      
-    };
-    //GEnerating the Token 
+      return sendError(res, 401, "Invalid Password");
+    }
+    // This is for generating the Token While log in
     const token = jwt.sign(
       {
         id: user._id,
@@ -87,30 +84,13 @@ export const login = async (req:Request<{},{},LoginRequestBody>,res:Response):Pr
         role: user.role,
       } as jwtPayload,
       process.env.JWT_SECRET as string,
-      { expiresIn: '1d' }
+      { expiresIn: "1d" }
     );
-    //  return res.status(200).json({
-    //   message: 'Login successful',
-    //   token,
-    //   user: {
-    //     id: user._id,
-    //     name: user.name,
-    //     email: user.email,
-    //     role: user.role,
-    //   },
-    // });
-    return sendSuccess(res,200,"Login Successfull",{
-       id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        token
-    })
-    } catch (error:any) {
-         console.error('Error during login:', error.message);
-    // return res.status(500).json({ message: `Server error: ${error.message}` });
-    return sendError(res,500,`Server Error ${error.message}`)
-    }
-   
-
-}
+    return sendSuccess(res, 200, "Login Successfull", {
+      token,
+    });
+  } catch (error: any) {
+    console.error("Error during login:", error.message);
+    return sendError(res, 500, `Server Error ${error.message}`);
+  }
+};

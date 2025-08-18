@@ -1,6 +1,6 @@
-
-import jwt from "jsonwebtoken"
+import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
+import { UserRole } from "../enums/UserRole";
 
 // Extend Express Request interface to include 'user'
 declare global {
@@ -12,66 +12,70 @@ declare global {
 }
 
 // This is  for the Only Authenticated User
-
-export const authenticateUser = (req: Request, res: Response, next: NextFunction)  => {
- const token = req.headers['authorization']?.toString().split(" ")[1] ||req.headers['Authorization']?.toString().split(" ")[1] ;
-    console.log(token);
- if(!token){
+export const authenticateUser = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const token =
+    req.headers["authorization"]?.toString().split(" ")[1] ||
+    req.headers["Authorization"]?.toString().split(" ")[1];
+  console.log(token);
+  if (!token) {
     return res.status(401).json({
-        success:false,
-        message:"Unauthorized access token not received"
-    })
- };
- try {
-    const decoded= jwt.verify(token,process.env.JWT_SECRET as string);
-    req.user=decoded ;
+      success: false,
+      message: "Unauthorized access token not received",
+    });
+  }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
+    req.user = decoded;
     console.log(req.user);
     next();
-
- } catch (error:any) {
+  } catch (error: any) {
     console.error("Token verification failed:", error.message);
-        return res.status(403).json({ message: "Invalid token" });
- }
-
+    return res.status(403).json({ message: "Invalid token" });
+  }
 };
 
-//Yo chai for the admin User ko lagi 
+//Yo chai for the admin User ko lagi
+export const adminUser = (req: Request, res: Response, next: NextFunction) => {
+  const token =
+    req.headers["authorization"]?.toString().split(" ")[1] ||
+    req.headers["Authorization"]?.toString().split(" ")[1];
+  console.log(token);
 
-export const adminUser = (req:Request, res:Response,next:NextFunction)=>{
-    const token = req.headers['authorization']?.toString().split(" ")[1] ||req.headers['Authorization']?.toString().split(" ")[1] ;
-    console.log(token);
-
- console.log(token);
- if(!token){
+  if (!token) {
     return res.status(401).json({
-        success:false,
-        message:"Unauthorized access token not received"
-    })
- };
- try {
+      success: false,
+      message: "Unauthorized access token not received",
+    });
+  }
+  try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
-    req.user = decoded   ;
+    req.user = decoded;
     console.log(req.user.role);
-    if(req.user.role === 'admin'){
-        next();
-    }else{
-        return res.status(403).json({
-            success:false,
-            message:"Only Admin Can Access this"
-        })
+    // if(req.user.role === 'admin'){
+    if (req.user.role === UserRole.ADMIN) {
+      next();
+    } else {
+      return res.status(403).json({
+        success: false,
+        message: "Only Admin Can Access this",
+      });
     }
-        
- } catch (error :any ) {
-
-console.error("Token verification failed:", error.message);
-        return res.status(403).json({ message: "Invalid token" });
-    
- }
-
+  } catch (error: any) {
+    console.error("Token verification failed:", error.message);
+    return res.status(403).json({ message: "Invalid token" });
+  }
 };
 
-//This is for the main reviewer
-export const reviewerUser = (req: Request, res: Response, next: NextFunction) => {
+//This is for the main reviewer of the job
+export const reviewerUser = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const token =
     req.headers["authorization"]?.toString().split(" ")[1] ||
     req.headers["Authorization"]?.toString().split(" ")[1];
@@ -87,7 +91,8 @@ export const reviewerUser = (req: Request, res: Response, next: NextFunction) =>
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
     req.user = decoded;
 
-    if (req.user.role === "reviewer") {
+    // if (req.user.role === "reviewer") {
+    if (req.user.role === UserRole.REVIEWER) {
       next();
     } else {
       return res.status(403).json({
@@ -100,4 +105,3 @@ export const reviewerUser = (req: Request, res: Response, next: NextFunction) =>
     return res.status(403).json({ message: "Invalid token" });
   }
 };
-
