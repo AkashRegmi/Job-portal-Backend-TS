@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema, model } from "mongoose";
-import { JobType } from "../enums/JobType";
-import { JOBSTATUS } from "../enums/jobStatus";
+import { JobType } from "../../enums/JobType";
+import { JOBSTATUS } from "../../enums/jobStatus";
 export interface IJob extends Document {
   user: mongoose.Types.ObjectId;
   title: string;
@@ -12,6 +12,7 @@ export interface IJob extends Document {
   time: Date;
   opennings: number;
   status: JOBSTATUS;
+  rejectionReason: string;
 }
 
 const jobSchema = new Schema<IJob>(
@@ -62,6 +63,10 @@ const jobSchema = new Schema<IJob>(
       type: Number,
       enum: JOBSTATUS,
       default: JOBSTATUS.PENDING,
+    },
+    rejectionReason: {
+      type: String,
+      default: null,
     },
   },
   {

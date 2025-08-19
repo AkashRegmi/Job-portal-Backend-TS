@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import User from "../model/User";
+import User from "../../model/UserModel/User";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import { sendError, sendSuccess } from "../utils/responseHandler";
-import { UserRole } from "../enums/UserRole";
+import { sendError, sendSuccess } from "../../utils/responseHandler";
+import { UserRole } from "../../enums/UserRole";
 
 interface RegisterRequestBody {
   name: string;
@@ -34,10 +34,6 @@ export const registerUser = async (
   try {
     const existinguser = await User.findOne({ email });
     if (existinguser) {
-      // return res.status(400).json({
-      //   success: "false",
-      //   message: "User Already Exist. Please SignIn",
-      // });
       return sendError(res, 400, "User Already Exist. Please SignIn ");
     }
     const newUser = await User.create({

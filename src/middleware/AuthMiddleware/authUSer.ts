@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
-import { UserRole } from "../enums/UserRole";
+// import { UserRole } from "../enums/UserRole";
+import { UserRole } from "../../enums/UserRole";
 
 // Extend Express Request interface to include 'user'
 declare global {

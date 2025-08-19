@@ -1,8 +1,9 @@
-import express, { Request, Response } from "express";
-import Application from "../model/Application";
-import Job from "../model/Job";
+import express, { Request, Response, NextFunction } from "express";
+import Application from "../../model/ApplicationModel/Application";
+import Job from "../../model/JobModel/Job";
 import fs from "fs";
-import { sendError, sendSuccess } from "../utils/responseHandler";
+import { sendError, sendSuccess } from "../../utils/responseHandler";
+import validate from "../../middleware/ValidationMiddleware/validatormiddleware";
 
 // yi chai job application dina lai
 
@@ -10,6 +11,7 @@ export const createApplication = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
+  const filepath = req.file?.path;
   try {
     const { jobId } = req.params;
     const { phoneNumber } = req.body;
@@ -18,15 +20,6 @@ export const createApplication = async (
 
     //for checking if there is the User Exist
     if (!userId) {
-      //     if (req.file && req.file.path) {
-      //   fs.unlink(req.file.path, (err) => {
-      //     if (err) console.error("Failed to delete file:", err);
-      //   });
-      // }
-      // return res.status(401).json({
-      //   success: false,
-      //   message: "Unauthorized: User not found",
-      // });
       return sendError(res, 401, "Unauthorize: User Not Found");
     }
 
@@ -64,13 +57,20 @@ export const createApplication = async (
       cv: req.file.path,
       phoneNumber,
     });
-
-    const savedApplication = await newApplication.save();
-    await savedApplication.populate("user", "name email role");
-    await savedApplication.populate("job", "title company location");
+    await newApplication.save();
+    // const savedApplication = await newApplication.save();
+    // await savedApplication.populate("user", "name email role");
+    // await savedApplication.populate("job", "title company location");
     return sendSuccess(res, 201, "Job Applied Successfully", newApplication);
   } catch (error: any) {
     console.error("Error creating application:", error);
+    if (filepath) {
+      fs.unlink(filepath, (err) => {
+        console.log(`Error Deleting the file ${err?.message}`);
+      });
+    } else {
+      console.log("Successfully deleted File");
+    }
     return sendError(res, 500, "Internal Server Error");
   }
 };
@@ -87,11 +87,11 @@ export const updatingApplication = async (
 
     // Checking if the user is login or not
     if (!userId) {
-      if (req.file && req.file.path) {
-        fs.unlink(req.file.path, (err) => {
-          if (err) console.error("Failed to delete uploaded file:", err);
-        });
-      }
+      // if (req.file && req.file.path) {
+      //   fs.unlink(req.file.path, (err) => {
+      //     if (err) console.error("Failed to delete uploaded file:", err);
+      //   });
+      // }
       return sendError(res, 401, "Unauthorized: User not found");
     }
 
@@ -136,7 +136,7 @@ export const updatingApplication = async (
     return sendSuccess(
       res,
       200,
-      "Application updated successfully", 
+      "Application updated successfully",
       updatedApplication
     );
   } catch (error: any) {
