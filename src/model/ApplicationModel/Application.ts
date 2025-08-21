@@ -1,9 +1,12 @@
 import mongoose, { Document, Schema, model } from "mongoose";
+import { APPLICATIONSTATUS } from "../../enums/ApplicationStatus";
 export interface IApplication extends Document {
   user: mongoose.Types.ObjectId; // Reference to the user
   job: mongoose.Types.ObjectId; // Reference to the job
   cv: string;
+  email:string,
   phoneNumber: string;
+  // status?:APPLICATIONSTATUS
 }
 
 const applicationSchema = new Schema<IApplication>(
@@ -18,6 +21,10 @@ const applicationSchema = new Schema<IApplication>(
       ref: "Job",
       required: true,
     },
+    email:{
+      type:String,
+      required:true
+    },
     cv: {
       type: String,
       required: true,
@@ -26,6 +33,10 @@ const applicationSchema = new Schema<IApplication>(
       type: String,
       required: true,
     },
+    // status:{
+    //   type:APPLICATIONSTATUS,
+    //   default:APPLICATIONSTATUS.PENDING
+    // }
   },
   {
     timestamps: true,

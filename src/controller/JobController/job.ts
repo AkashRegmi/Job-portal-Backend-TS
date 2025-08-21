@@ -65,19 +65,10 @@ export const createJob = async (
     });
 
     await newJob.save();
-    // return res.status(201).json({
-    //     status: 201,
-    //   success: true,
-    //   message: "Job created successfully",
-    //   job: newJob
-    // });
+
     return sendSuccess(res, 201, "Job Created Successfully", newJob);
   } catch (error: any) {
     console.error("Error creating job:", error);
-    // return res.status(500).json({
-    //   success: false,
-    //   message: "Internal server error. Cannot create job"
-    // });
     return sendError(res, 500, "Internal Server Error.Cannot Create the JOb ");
   }
 };
@@ -107,27 +98,19 @@ export const getAllJobs = async (
     if (company) {
       filter.company = { $regex: company, $options: "i" };
     }
-    if (salaryMin || salaryMax) {
-      filter.salary = {};
-      if (salaryMin) filter.salary.$gte = Number(salaryMin);
-      if (salaryMax) filter.salary.$lte = Number(salaryMax);
-    }
+    // if (salaryMin || salaryMax) {
+    //   filter.salary = {};
+    //   if (salaryMin) filter.salary.$gte = Number(salaryMin);
+    //   if (salaryMax) filter.salary.$lte = Number(salaryMax);
+    // }
     filter.status = 1;
-
+    filter.time = { $gte: new Date() };
     const jobs = await Job.find(filter)
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 });
     const allJobs = await Job.countDocuments();
     const totalJobs = await Job.countDocuments(filter);
-    // return res.status(200).json({
-    //     status: 200,
-    //   success: true,
-    //   jobs,
-    //   currentPage: page,
-    //     totalJobs: totalJobs,
-    //     totalpage  : Math.ceil(allJobs/limit)
-    // });
     return sendSuccess(res, 200, "Data Fetch Successfully", {
       jobs,
       currentPage: page,
@@ -136,10 +119,6 @@ export const getAllJobs = async (
     });
   } catch (error) {
     console.error("Error fetching jobs:", error);
-    // return res.status(500).json({
-    //   success: false,
-    //   message: "Internal server error. Cannot get all jobs"
-    // });
     return sendError(res, 500, "Internal Server Error ");
   }
 };
@@ -153,25 +132,11 @@ export const getJobById = async (
   try {
     const job = await Job.findById(jobId);
     if (!job) {
-      // return res.status(404).json({
-      //   success: false,
-      //   message: "Job not found"
-      // });
       return sendError(res, 404, "Job not Found");
     }
-    // return res.status(200).json({
-
-    //     status: 200,
-    //   success: true,
-    //   job
-    // });
     return sendSuccess(res, 200, "Job fetch Successfully", job);
   } catch (error) {
     console.error("Error fetching job:", error);
-    // return res.status(500).json({
-    //     success: false,
-    //     message: "Internal server error:Cannot get the job by ID"
-    //   })
     return sendError(res, 500, "Internal Server Error ");
   }
 };
@@ -195,19 +160,9 @@ export const updateJob = async (
     } = req.body;
     const job = await Job.findById(jobId);
     if (!job) {
-      // return res.status(404).json({
-      //   success: false,
-      //   status:404,
-      //   message: "Job not found"
-      // });
       return sendError(res, 404, "Job not Found");
     }
     if (job.user.toString() !== req.user?.id) {
-      // return res.status(403).json({
-      //   status: 403,
-      //   success: false,
-      //   message: "You are not authorized to update this job"
-      // });
       return sendError(res, 403, "You are not authorize to update this job ");
     }
     const updatedJob = await Job.findByIdAndUpdate(
@@ -221,24 +176,16 @@ export const updateJob = async (
         jobType,
         time,
         opennings,
+        status: JOBSTATUS.PENDING,
       },
       { new: true }
     );
-    // return res.status(200).json({
-    //     status:200,
-    //   success: true,
-    //   message: "Job updated successfully",
-    //   job: updatedJob
-    // });
+
     return sendSuccess(res, 200, "Job Updated Successfully ", {
       job: updateJob,
     });
   } catch (error) {
     console.error("Error updating job:", error as Error);
-    // return res.status(500).json({
-    //   success: false,
-    //   message: "Internal server error.Error updating the job"
-    // });
     return sendError(res, 500, "Internl Server Error. Error Updating Job  ");
   }
 };
@@ -253,50 +200,26 @@ export const deleteJob = async (
     // const job = await Job.findByIdAndDelete(jobId);
     const job = await Job.findById(jobId);
     if (!job) {
-      // return res.status(404).json({
-      //   status: 404,
-      //   success: false,
-      //   message: "Job not found"
-      // });
       return sendError(res, 404, "Job not Found ");
     }
     if (job.user.toString() !== req.user?.id) {
-      // return res.status(403).json({
-      //   status: 403,
-      //   success: false,
-      //   message: "You are not authorized to delete this job"
-      // });
       return sendError(res, 403, "you are not authorize to delete this job ");
     }
     await Job.findByIdAndDelete(jobId);
-    // return res.status(200).json({
-    //     status: 200,
-    //   success: true,
-    //   message: "Job deleted successfully"
-    // });
     return sendSuccess(res, 200, "Job Deleted Successfully");
   } catch (error) {
     console.error("Error deleting job:", error);
-    // return res.status(500).json({
-    //     status: 500,
-    //   success: false,
-    //   message: "Internal server error.Error deleting the job"
-    // });
     return sendError(res, 500, "Internal Server Error");
   }
 };
 
-//All the jobpost by the admin
+//All the jobpost by the admin 
 export const alljobByAdmin = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
   const userId = req.user?.id;
   if (!userId) {
-    // return res.status(401).json({
-    // //   success: false,
-    // //   message: "Unauthorized: User ID not found in request",
-    // // });
     return sendError(res, 401, "Unauthorized:User ID not found ");
   }
 
@@ -304,26 +227,11 @@ export const alljobByAdmin = async (
     const jobs = await Job.find({ user: userId });
 
     if (!jobs || jobs.length === 0) {
-      // return res.status(404).json({
-      //   status: 404,
-      //   success: false,
-      //   message: "No jobs Post found for this Admin",
-      // });
       return sendError(res, 404, "NO job post found for this Admin");
     }
-
-    // return res.status(200).json({
-    //   status: 200,
-    //   success: true,
-    //   jobs,
-    // });
     return sendSuccess(res, 200, "job Fetched Successfully", jobs);
   } catch (error: any) {
     console.error("Error fetching jobs by admin:", error.message);
-    // return res.status(500).json({
-    //   success: false,
-    //   message: `Server error: ${error.message}`,
-    // });
     return sendError(res, 500, `Server error: ${error.message}`);
   }
 };
@@ -335,10 +243,6 @@ export const alljobAppliedByUser = async (
 ): Promise<Response> => {
   const userId = req.user?.id;
   if (!userId) {
-    // return res.status(401).json({
-    //   success: 'failed',
-    //   message: "Unauthorized: User ID not found in request",
-    // });
     return sendError(res, 401, "Unauthorized: User ID not found in request");
   }
 
@@ -349,26 +253,12 @@ export const alljobAppliedByUser = async (
       .sort({ createdAt: -1 });
 
     if (!jobs || jobs.length === 0) {
-      // return res.status(404).json({
-      //   status: 404,
-      //   success: 'failed',
-      //   message: 'No jobs found for this user',
-      // });
       return sendError(res, 404, "No jobs found for this user");
     }
 
-    // return res.status(200).json({
-    //   status: 200,
-    //   success: true,
-    //   jobs,
-    // });
     return sendSuccess(res, 200, "Data Fetched Successfully", jobs);
   } catch (error: any) {
     console.error("Error fetching jobs by user:", error.message);
-    // return res.status(500).json({
-    //   success: 'failed',
-    //   message: `Server error: ${error.message}`,
-    // });
     return sendError(res, 500, "Internal Server Error ");
   }
 };
@@ -428,7 +318,7 @@ export const getPendingjostPost = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
-  const job = await Job.find({ status: { $in: [JOBSTATUS.PENDING] } });
+  const job = await Job.find({ status: { $in: [JOBSTATUS.PENDING] } }).sort({createdAt:-1});
   if (!job) {
     return sendError(res, 404, "Cannot find the job");
   }

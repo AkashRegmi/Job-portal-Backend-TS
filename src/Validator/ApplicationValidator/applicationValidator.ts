@@ -13,24 +13,3 @@ export const applicationValidator = [
   validate,
 ];
 
-// Extend Express Request type to include 'file'
-
-
-
-
-// export const validateAndCleanFile = (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction
-// ) => {
-//   const errors = validationResult(req);
-//   if (!errors.isEmpty()) {
-//     if (req.file?.path) {
-//       fs.unlink(req.file.path, (err) => {
-//         console.log(`Error deleting the file ${err?.message}`);
-//       });
-//     } else {
-//       console.log("File Deleted SuccessFully");
-//     }
-//   }
-// };

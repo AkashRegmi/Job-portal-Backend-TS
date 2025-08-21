@@ -1,0 +1,5 @@
+export enum APPLICATIONSTATUS {
+  ACCEPTED = 1,
+  PROCESSING = 2,
+  DECLINED = 3,
+}

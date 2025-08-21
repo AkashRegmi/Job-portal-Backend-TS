@@ -71,6 +71,7 @@ export const login = async (
     if (!isMatch) {
       return sendError(res, 401, "Invalid Password");
     }
+
     // This is for generating the Token While log in
     const token = jwt.sign(
       {

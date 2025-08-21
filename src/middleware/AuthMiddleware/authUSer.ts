@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 // import { UserRole } from "../enums/UserRole";
 import { UserRole } from "../../enums/UserRole";
+import { sendError } from "../../utils/responseHandler";
 
 // Extend Express Request interface to include 'user'
 declare global {
@@ -23,10 +24,7 @@ export const authenticateUser = (
     req.headers["Authorization"]?.toString().split(" ")[1];
   console.log(token);
   if (!token) {
-    return res.status(401).json({
-      success: false,
-      message: "Unauthorized access token not received",
-    });
+    return sendError(res, 401, "Unauthorized access token not received");
   }
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
@@ -35,7 +33,7 @@ export const authenticateUser = (
     next();
   } catch (error: any) {
     console.error("Token verification failed:", error.message);
-    return res.status(403).json({ message: "Invalid token" });
+    return sendError(res, 403, "Invalid Token ");
   }
 };
 
@@ -47,10 +45,7 @@ export const adminUser = (req: Request, res: Response, next: NextFunction) => {
   console.log(token);
 
   if (!token) {
-    return res.status(401).json({
-      success: false,
-      message: "Unauthorized access token not received",
-    });
+    return sendError(res, 401, "Unauthorize access token not received");
   }
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
@@ -60,14 +55,11 @@ export const adminUser = (req: Request, res: Response, next: NextFunction) => {
     if (req.user.role === UserRole.ADMIN) {
       next();
     } else {
-      return res.status(403).json({
-        success: false,
-        message: "Only Admin Can Access this",
-      });
+      return sendError(res, 403, "Only Admin can Access this");
     }
   } catch (error: any) {
     console.error("Token verification failed:", error.message);
-    return res.status(403).json({ message: "Invalid token" });
+    return sendError(res, 403, "Invalid Token");
   }
 };
 
@@ -82,10 +74,7 @@ export const reviewerUser = (
     req.headers["Authorization"]?.toString().split(" ")[1];
 
   if (!token) {
-    return res.status(401).json({
-      success: false,
-      message: "Unauthorized: token not received",
-    });
+    return sendError(res, 401, "Unauthorizes: Token not received");
   }
 
   try {
@@ -96,13 +85,10 @@ export const reviewerUser = (
     if (req.user.role === UserRole.REVIEWER) {
       next();
     } else {
-      return res.status(403).json({
-        success: false,
-        message: "Only Reviewer can access this",
-      });
+      return sendError(res, 403, "Only Reviewer can access this ");
     }
   } catch (error: any) {
     console.error("Token verification failed:", error.message);
-    return res.status(403).json({ message: "Invalid token" });
+    return sendError(res, 403, "Invalid Token");
   }
 };

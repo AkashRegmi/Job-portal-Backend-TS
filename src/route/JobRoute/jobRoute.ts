@@ -14,9 +14,6 @@ import {
   getPendingjostPost,
   getAlljostPost,
 } from "../../controller/JobController/job";
-import { body } from "express-validator";
-
-import validate from "../../middleware/ValidationMiddleware/validatormiddleware";
 
 import {
   authenticateUser,
@@ -44,18 +41,10 @@ router.post("/create", adminUser, jobValidator, createJob);
 router.put("/updateJob/:id", adminUser, updatejobValidator, updateJob);
 router.delete("/deleteJob/:id", adminUser, deleteJob);
 
-//For USers
-// router.post("/create", adminUser,jobValidator ,createJob);
+//For Users
 router.get("/getAllJobs", getAllJobs);
-// router.get("/getAllJobPost",getalljostPost)
-// router.get("/approvedJobsPost",getAllApprovedJObPost);
-// router.get("/rejectedJobsPost",getAllRejectedJObPost)
 router.get("/getJob/:id", getJobById);
 router.get("/alljobByAdmin", authenticateUser, adminUser, alljobByAdmin);
 router.get("/alljobAppliedByUser", authenticateUser, alljobAppliedByUser);
-// router.put("/updateJob/:id", adminUser,updatejobValidator, updateJob);
-// router.delete("/deleteJob/:id", adminUser,deleteJob);
-// router.put('/acceptJob/:id',acceptJobApplication);
-// router.put("/rejectJob/:id", rejectJObApplication);
 
 export default router;

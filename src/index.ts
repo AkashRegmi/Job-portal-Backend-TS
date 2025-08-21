@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import connectDB from "./config/database";
+import connectDB from "./config/DatabaseConnection/database";
 import dotenv from "dotenv";
 import authRouter from "./route/AuthRoute/authRoute";
 import jobRouter from "./route/JobRoute/jobRoute";
@@ -13,7 +13,9 @@ const app = express();
 const PORT = process.env.PORT || 4001;
 connectDB();
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin:'*'
+}));
 
 app.use("/api/auth", authRouter);
 app.use("/api/job", jobRouter);
