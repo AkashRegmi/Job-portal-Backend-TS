@@ -15,6 +15,9 @@ interface createJobBody {
   opennings: number;
 }
 
+
+//ONLY FOR  ADMIN
+
 // This is for creating a new job (done)
 export const createJob = async (
   req: Request<{}, {}, createJobBody>,
@@ -73,74 +76,6 @@ export const createJob = async (
   }
 };
 
-//This is for getting all jobs (done)
-export const getAllJobs = async (
-  req: Request,
-  res: Response
-): Promise<Response> => {
-  try {
-    const { title, location, jobType, company, salaryMin, salaryMax } =
-      req.query;
-    const limit = parseInt(req.query.limit as string) || 8;
-    const page = parseInt(req.query.page as string) || 1;
-    const skip = (page - 1) * limit;
-
-    const filter: any = {};
-    if (title) {
-      filter.title = { $regex: title, $options: "i" };
-    }
-    if (location) {
-      filter.location = { $regex: location, $options: "i" };
-    }
-    if (jobType) {
-      filter.jobType = jobType;
-    }
-    if (company) {
-      filter.company = { $regex: company, $options: "i" };
-    }
-    // if (salaryMin || salaryMax) {
-    //   filter.salary = {};
-    //   if (salaryMin) filter.salary.$gte = Number(salaryMin);
-    //   if (salaryMax) filter.salary.$lte = Number(salaryMax);
-    // }
-    filter.status = 1;
-    filter.time = { $gte: new Date() };
-    const jobs = await Job.find(filter)
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdAt: -1 });
-    const allJobs = await Job.countDocuments();
-    const totalJobs = await Job.countDocuments(filter);
-    return sendSuccess(res, 200, "Data Fetch Successfully", {
-      jobs,
-      currentPage: page,
-      totalJobs: totalJobs,
-      totalpage: Math.ceil(totalJobs / limit),
-    });
-  } catch (error) {
-    console.error("Error fetching jobs:", error);
-    return sendError(res, 500, "Internal Server Error ");
-  }
-};
-
-// This is for getting a single job by ID (Done)
-export const getJobById = async (
-  req: Request,
-  res: Response
-): Promise<Response> => {
-  const jobId = req.params.id;
-  try {
-    const job = await Job.findById(jobId);
-    if (!job) {
-      return sendError(res, 404, "Job not Found");
-    }
-    return sendSuccess(res, 200, "Job fetch Successfully", job);
-  } catch (error) {
-    console.error("Error fetching job:", error);
-    return sendError(res, 500, "Internal Server Error ");
-  }
-};
-
 // This is for updating a job by ID  (Done)
 export const updateJob = async (
   req: Request,
@@ -182,7 +117,7 @@ export const updateJob = async (
     );
 
     return sendSuccess(res, 200, "Job Updated Successfully ", {
-      job: updateJob,
+      job: updatedJob,
     });
   } catch (error) {
     console.error("Error updating job:", error as Error);
@@ -233,33 +168,6 @@ export const alljobByAdmin = async (
   } catch (error: any) {
     console.error("Error fetching jobs by admin:", error.message);
     return sendError(res, 500, `Server error: ${error.message}`);
-  }
-};
-
-//All the job Applied by the user (Done)
-export const alljobAppliedByUser = async (
-  req: Request,
-  res: Response
-): Promise<Response> => {
-  const userId = req.user?.id;
-  if (!userId) {
-    return sendError(res, 401, "Unauthorized: User ID not found in request");
-  }
-
-  try {
-    const jobs = await Application.find({ user: userId })
-      .populate("job", "title company location salary jobType time")
-      .populate("user", "name email")
-      .sort({ createdAt: -1 });
-
-    if (!jobs || jobs.length === 0) {
-      return sendError(res, 404, "No jobs found for this user");
-    }
-
-    return sendSuccess(res, 200, "Data Fetched Successfully", jobs);
-  } catch (error: any) {
-    console.error("Error fetching jobs by user:", error.message);
-    return sendError(res, 500, "Internal Server Error ");
   }
 };
 
@@ -366,3 +274,108 @@ export const getAllRejectedJObPost = async (
 
   return sendSuccess(res, 200, "Data Fetched successfully", job);
 };
+
+
+
+//ONLY FOR USER 
+
+//This is for getting all jobs (done)
+export const getAllJobs = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  try {
+    const { title, location, jobType, company, salaryMin, salaryMax } =
+      req.query;
+    const limit = parseInt(req.query.limit as string) || 8;
+    const page = parseInt(req.query.page as string) || 1;
+    const skip = (page - 1) * limit;
+
+    const filter: any = {};
+    if (title) {
+      filter.title = { $regex: title, $options: "i" };
+    }
+    if (location) {
+      filter.location = { $regex: location, $options: "i" };
+    }
+    if (jobType) {
+      filter.jobType = jobType;
+    }
+    if (company) {
+      filter.company = { $regex: company, $options: "i" };
+    }
+    // if (salaryMin || salaryMax) {
+    //   filter.salary = {};
+    //   if (salaryMin) filter.salary.$gte = Number(salaryMin);
+    //   if (salaryMax) filter.salary.$lte = Number(salaryMax);
+    // }
+    filter.status = 1;
+    filter.time = { $gte: new Date() };
+    const jobs = await Job.find(filter)
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+    const allJobs = await Job.countDocuments();
+    const totalJobs = await Job.countDocuments(filter);
+    return sendSuccess(res, 200, "Data Fetch Successfully", {
+      jobs,
+      currentPage: page,
+      totalJobs: totalJobs,
+      totalpage: Math.ceil(totalJobs / limit),
+    });
+  } catch (error) {
+    console.error("Error fetching jobs:", error);
+    return sendError(res, 500, "Internal Server Error ");
+  }
+};
+
+// This is for getting a single job by ID (Done)
+export const getJobById = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const jobId = req.params.id;
+  try {
+    const job = await Job.findById(jobId);
+    if (!job) {
+      return sendError(res, 404, "Job not Found");
+    }
+    return sendSuccess(res, 200, "Job fetch Successfully", job);
+  } catch (error) {
+    console.error("Error fetching job:", error);
+    return sendError(res, 500, "Internal Server Error ");
+  }
+};
+
+
+//All the job Applied by the user (Done)
+export const alljobAppliedByUser = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const userId = req.user?.id;
+  if (!userId) {
+    return sendError(res, 401, "Unauthorized: User ID not found in request");
+  }
+
+  try {
+    const jobs = await Application.find({ user: userId })
+      .populate("job", "title company location salary jobType time")
+      .populate("user", "name email")
+      .sort({ createdAt: -1 });
+
+    if (!jobs || jobs.length === 0) {
+      return sendError(res, 404, "No jobs found for this user");
+    }
+
+    return sendSuccess(res, 200, "Data Fetched Successfully", jobs);
+  } catch (error: any) {
+    console.error("Error fetching jobs by user:", error.message);
+    return sendError(res, 500, "Internal Server Error ");
+  }
+};
+
+
+
+
+

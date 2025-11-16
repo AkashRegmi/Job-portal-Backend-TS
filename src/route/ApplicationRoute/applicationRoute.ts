@@ -1,6 +1,6 @@
 import express, { Router, Request, Response } from "express";
 import multer, { FileFilterCallback } from "multer";
-import { ApplicationListing, createApplication, getApplicationCountForJob, whoAppliedForTheSpecificJob } from "../../controller/ApplicationController/application";
+import { applicationApproval, ApplicationListing, applicationRejection, createApplication, getApplicationCountForJob, getPendingApplication, whoAppliedForTheSpecificJob } from "../../controller/ApplicationController/application";
 // import { authenticateUser } from "../../middleware/authUSer";
 import { adminUser, authenticateUser } from "../../middleware/AuthMiddleware/authUSer";
 import { creatMUltipleUpload } from "../../utils/uploads";
@@ -20,9 +20,16 @@ router.post(
   applicationValidator,
   createApplication
 );
-router.get("/listing",adminUser,ApplicationListing)
+// router.get("/listing",adminUser,ApplicationListing)
 router.get("/applicantForSpecificJob/:jobId",adminUser,whoAppliedForTheSpecificJob)
-router.get("/:jobId", adminUser,getApplicationCountForJob)
+
+//This is for the Admin Only 
+router.get("/getThePendingApplication",adminUser,getPendingApplication)
+router.put("/acceptApplication/:applicationId",adminUser,applicationApproval)
+router.put("/rejectApplication/:applicationId",adminUser,applicationRejection)
+
+
+// router.get("/:jobId", adminUser,getApplicationCountForJob)
 
 
 export default router;

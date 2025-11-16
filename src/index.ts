@@ -13,9 +13,11 @@ const app = express();
 const PORT = process.env.PORT || 4001;
 connectDB();
 app.use(express.json());
-app.use(cors({
+app.use(cors(
+  {
   origin:'*'
-}));
+}
+));
 
 app.use("/api/auth", authRouter);
 app.use("/api/job", jobRouter);

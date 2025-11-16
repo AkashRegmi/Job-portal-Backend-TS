@@ -6,7 +6,7 @@ export interface IApplication extends Document {
   cv: string;
   email:string,
   phoneNumber: string;
-  // status?:APPLICATIONSTATUS
+  status?:APPLICATIONSTATUS
 }
 
 const applicationSchema = new Schema<IApplication>(
@@ -33,10 +33,11 @@ const applicationSchema = new Schema<IApplication>(
       type: String,
       required: true,
     },
-    // status:{
-    //   type:APPLICATIONSTATUS,
-    //   default:APPLICATIONSTATUS.PENDING
-    // }
+    status:{
+      type:Number,
+      enum:APPLICATIONSTATUS,
+      default:APPLICATIONSTATUS.PROCESSING
+    }
   },
   {
     timestamps: true,
